@@ -48,21 +48,20 @@ COMGA_correlation COMGA_table_maker DoubleHelix Ew P2 RNAfold _blast _clustalw _
         writeFile
 );
 
-our $VERSION = '0.01';
+our $VERSION = '0.10';
 
 # Preloaded methods go here.
 
-my $gbprefix  = 'http://www.g-language.org/gb/';
-my $gbaprefix = 'http://www.g-language.org/gba/';
-my $gbiprefix = 'http://www.g-language.org/gbi/upl.pl';
+my $prefix  = 'http://rest.g-language.org/';
+my $upload  = $prefix . 'upload/upl.pl';
 my $ua = LWP::UserAgent->new;
 
 sub load {
     my $this = {};
 
-    $_[0] =  $ua->post($gbiprefix, 'Content_Type'=>'form-data', 'Content'=>['file'=>[$_[0]]])->content if(-e $_[0]);
+    $_[0] =  $ua->post($upload, 'Content_Type'=>'form-data', 'Content'=>['file'=>[$_[0]]])->content if(-e $_[0]);
 
-    foreach my $line (split(/\n/, $ua->get($gbaprefix . $_[0] . '/disclose')->content)){
+    foreach my $line (split(/\n/, $ua->get($prefix . $_[0] . '/disclose')->content)){
 	my ($feat, $key, $val) = split(/\t/, $line);
 	if(length $val){
 	    $this->{$feat}->{$key} = $val;
@@ -81,7 +80,7 @@ sub load {
     }
 
     $this->{filename} = $_[0];
-    print $ua->get($gbprefix . $_[0])->content;
+    print $ua->get($prefix . $_[0])->content;
 
     return bless $this;
 }
@@ -111,7 +110,7 @@ sub AUTOLOAD{
         }
     }
 
-    my $url = $gbaprefix . join('/', $gb->{filename}, $method[-1], @new_args);
+    my $url = $prefix . join('/', $gb->{filename}, $method[-1], @new_args);
     my $request = HTTP::Request->new('GET', $url);
     my $res = $ua->simple_request($request);
     my $result;
